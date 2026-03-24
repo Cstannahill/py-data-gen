@@ -1,0 +1,16 @@
+{
+    "provider": "ollama",
+    "model": "qwemini",
+    "use_thinking": false,
+    "use_structured_outputs": false,
+    "total_entries": 10,
+    "batch_size": 1,
+    "max_correction_attempts": 3,
+    "output_format": "custom",
+    "example_dataset_path": "examples/sample_dataset.json",
+    "constraints_path": "constraints/constraints.txt",
+    "dataset_goal": "Create a dataset for training a helpful, safe, and general-purpose assistant for everyday tasks and learning support.",
+    "output_dir": "./output/sample_dataset",
+    "save_prompt": true,
+    "save_failures": true
+}
