@@ -22,8 +22,8 @@ A robust and modular system for generating high-quality training datasets using 
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd llm-dataset-generator
+git clone https://github.com/Cstannahill/py-data-gen
+cd py-data-gen
 
 # Install dependencies
 pip install -r requirements.txt
@@ -97,7 +97,7 @@ dataset = generator.generate()
 ## File Structure
 
 ```
-llm-dataset-generator/
+py-data-gen/
 ├── dataset_generator.py      # Main orchestrator
 ├── llm_providers.py          # LLM provider implementations
 ├── prompt_builder.py         # Prompt generation and analysis
@@ -263,10 +263,6 @@ generator.evaluator.provider = provider
 3. Provide clear, specific examples and constraints
 4. Monitor the failure log to identify recurring issues
 5. Use thinking mode for complex generation tasks
-
-## License
-
-[Your License Here]
 
 ## Contributing
 
