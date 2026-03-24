@@ -1,4 +1,4 @@
-# LLM Dataset Generator
+# py-data-gen
 
 A robust and modular system for generating high-quality training datasets using Large Language Models. Supports local Ollama, with extensible architecture for additional providers.
 
