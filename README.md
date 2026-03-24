@@ -22,7 +22,7 @@ A robust and modular system for generating high-quality training datasets using 
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Cstannahill/py-data-gen
 cd llm-dataset-generator
 
 # Install dependencies
