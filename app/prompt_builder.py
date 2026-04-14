@@ -2,7 +2,6 @@
 Prompt building and analysis
 """
 
-# prompt_builder.py
 import json
 from typing import Optional, Callable
 
@@ -35,11 +34,10 @@ class PromptBuilder:
         if status_cb:
             status_cb("Calling LLM for analysis insights")
 
-        # This is the call that can take minutes :contentReference[oaicite:2]{index=2}
         insights = self.provider.generate(
             analysis_prompt,
             structured_outputs=False,
-            on_chunk=token_cb,  # <-- stream heartbeat
+            on_chunk=token_cb,
         )
 
         if status_cb:
@@ -124,8 +122,16 @@ Provide your analysis in a clear, structured format that can be directly used to
         """Build the final generation prompt"""
 
         format_specs = self._get_format_specifications(output_format)
+        
+        # Conservative limits for better compatibility with local LLMs (e.g. Ollama)
+        max_examples_chars = 20000  # ~5k tokens
+        max_insights_chars = 10000  # ~2.5k tokens
 
-        prompt = f"""You are an expert dataset generator. Generate high-quality training data entries.
+        safe_insights = insights
+        if len(insights) > max_insights_chars:
+            safe_insights = insights[:max_insights_chars] + "... (truncated)"
+
+        prompt = f"""You are an expert dataset generator. Your mission is to generate high-quality training data entries.
 
 ## OBJECTIVE
 {goal}
@@ -134,37 +140,49 @@ Provide your analysis in a clear, structured format that can be directly used to
 {format_specs}
 
 ## GENERATION INSIGHTS
-{insights}
+{safe_insights}
 """
 
         if example_dataset:
+            safe_examples = example_dataset
+            if len(example_dataset) > max_examples_chars:
+                # Try to truncate at a line break
+                safe_examples = example_dataset[:max_examples_chars]
+                last_line = safe_examples.rfind("\n")
+                if last_line != -1:
+                    safe_examples = safe_examples[:last_line]
+                safe_examples += "\n... (examples truncated to fit context window)"
+            
             prompt += f"""
 ## EXAMPLE ENTRIES
-{example_dataset}
+{safe_examples}
 """
 
         if constraints:
+            # Constraints are usually short, but let's be safe
+            safe_constraints = constraints if len(constraints) < 5000 else constraints[:5000] + "..."
             prompt += f"""
 ## CONSTRAINTS AND REQUIREMENTS
-{constraints}
+{safe_constraints}
 """
 
         prompt += f"""
-## GENERATION INSTRUCTIONS
-1. Generate EXACTLY {num_entries} dataset entries
-2. Each entry must follow the {output_format} format precisely
-3. Ensure high quality, diversity, and adherence to all requirements
-4. Apply the insights provided above to create effective training examples
-5. Avoid repetitive patterns or predictable structures
-6. Each entry should contribute unique value to the dataset
+## GENERATION GUIDELINES
+1. Generate the requested number of dataset entries per batch.
+2. Each entry must follow the {output_format} format precisely.
+3. Ensure high quality, diversity, and strict adherence to all requirements.
+4. Apply the insights provided above to create effective training examples.
+5. Avoid repetitive patterns; each entry should contribute unique value.
 
-## OUTPUT REQUIREMENTS
-- Return a valid JSON array containing exactly {num_entries} entries
-- Each entry must be a complete, valid {output_format} formatted object
-- Do not include any text outside the JSON array
-- Ensure all JSON is properly formatted and valid
-
-Generate the {num_entries} entries now:
+## OUTPUT SCHEMA
+You must return a JSON object with an "entries" key containing an array of dataset entries.
+Example:
+{{
+  "entries": [
+    {{ ... entry 1 ... }},
+    {{ ... entry 2 ... }}
+  ]
+}}
 """
 
         return prompt
@@ -182,11 +200,11 @@ Generate the {num_entries} entries now:
   ]
 }
 
-Requirements:
-- Each entry must have a "conversations" array
-- Messages alternate between "human" and "gpt"
-- Each message has "from" and "value" fields
-- Conversations should be natural and coherent
+CRITICAL Requirements:
+- Use the plural key "conversations" (MUST end with 's').
+- Each entry must have a "conversations" array.
+- Messages alternate between "human" and "gpt" exactly.
+- Each message object must have "from" and "value" fields.
 """
 
         elif output_format == "alpaca":
@@ -198,17 +216,25 @@ Requirements:
 }
 
 Requirements:
-- Each entry must have "instruction", "input", and "output" fields
-- Instructions should be clear and specific
-- Input provides context when needed (otherwise empty string)
-- Output should be complete and helpful
+- Each entry must have "instruction", "input", and "output" fields.
+- Use these exact keys (all lowercase).
+- Instruction should be a clear directive.
+- Output should be the expert response.
 """
 
         else:
-            return f"Custom format: {output_format}\nEnsure entries follow the expected structure."
+            # Default to a generic but clear object structure if format is unknown (e.g. "jsonl")
+            return f"""The entries should be valid JSON objects representing training examples.
+Format: {output_format.upper()}
+
+Requirements:
+1. Each entry must be a complete, self-contained JSON object.
+2. If no specific schema is provided, use a natural structure appropriate for the goal.
+3. Ensure high quality and consistency across entries.
+"""
 
     def build_correction_prompt(
-        self, original_entry: dict, feedback: str, output_format: str
+        self, original_entry: dict, feedback: str, output_format: str, goal: str, constraints: Optional[str]
     ) -> str:
         """Build prompt for correcting a failed entry"""
 
@@ -216,6 +242,15 @@ Requirements:
 
         prompt = f"""You are correcting a dataset entry that failed validation.
 
+## DATASET GOAL
+{goal}
+"""
+        if constraints:
+            prompt += f"""
+## CONSTRAINTS AND REQUIREMENTS
+{constraints}
+"""
+        prompt += f"""
 ## FORMAT REQUIRED: {output_format.upper()}
 {format_specs}
 
@@ -237,5 +272,4 @@ Requirements:
 
 Return the corrected entry now:
 """
-
         return prompt
