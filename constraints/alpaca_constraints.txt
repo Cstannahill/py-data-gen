@@ -1,0 +1,44 @@
+# Example constraints file for Alpaca format
+
+## Instruction Quality
+- Instructions should be clear, specific, and actionable
+- Vary complexity from simple to complex tasks
+- Include diverse task types: analysis, creation, explanation, comparison, debugging, etc.
+- Avoid overly broad or vague instructions
+
+## Input Field Usage
+- Use the input field for context when it adds value
+- Examples: code snippets to analyze, text to summarize, data to process
+- Input can be empty when the instruction is self-contained
+- Keep inputs focused and relevant to the instruction
+
+## Output Quality
+- Outputs should fully address the instruction
+- Include examples, explanations, or step-by-step guidance as appropriate
+- Maintain consistent expertise level appropriate to the instruction
+- Outputs should be thorough but not unnecessarily verbose
+- Include caveats or edge cases when relevant
+
+## Diversity Requirements
+- Mix different domains: programming, writing, analysis, problem-solving, etc.
+- Vary output lengths based on what the instruction requires
+- Include both creative and analytical tasks
+- Represent different difficulty levels
+
+---
+
+# examples/alpaca_examples.json
+# Example Alpaca dataset entries
+
+[
+  {
+    "instruction": "Explain how to use Python's list comprehension to filter and transform data in a single line.",
+    "input": "",
+    "output": "List comprehension in Python provides a concise way to filter and transform data simultaneously. The basic syntax is: [expression for item in iterable if condition].\n\nHere's an example that filters and transforms:\n\nnumbers = [1, 2, 3, 4, 5, 6]\nsquared_evens = [x**2 for x in numbers if x % 2 == 0]\n# Result: [4, 16, 36]\n\nThis single line:\n1. Iterates through 'numbers'\n2. Filters for even numbers (if x % 2 == 0)\n3. Squares each even number (x**2)\n4. Creates a new list with the results\n\nYou can also use multiple conditions and nested iterations for more complex transformations."
+  },
+  {
+    "instruction": "Debug this Python function and explain what's wrong with it.",
+    "input": "def calculate_average(numbers):\n    total = 0\n    for num in numbers:\n        total += num\n    return total / len(numbers)",
+    "output": "This function has a critical bug: it will raise a ZeroDivisionError if passed an empty list because len(numbers) would be 0.\n\nHere's the corrected version:\n\ndef calculate_average(numbers):\n    if not numbers:  # Check if list is empty\n        return 0  # or raise ValueError(\"Cannot calculate average of empty list\")\n    total = 0\n    for num in numbers:\n        total += num\n    return total / len(numbers)\n\nAlternatively, you could use Python's built-in functions:\n\ndef calculate_average(numbers):\n    if not numbers:\n        return 0\n    return sum(numbers) / len(numbers)\n\nThe key lesson: always validate input data, especially when performing division or other operations that can fail with certain inputs."
+  }
+]

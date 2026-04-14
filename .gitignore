@@ -23,3 +23,7 @@ output/
 Thumbs.db
 .idea/
 .vscode/
+
+# Current personal running files
+constraints/prompt_architect.txt
+docs/superpowers/**

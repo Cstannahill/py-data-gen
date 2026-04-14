@@ -16,6 +16,7 @@ class ProgressTracker:
         self.current_entries = 0
         self.current_status = "Initializing"
         self.start_time = datetime.now()
+        self.only_status = False
 
     def update_status(self, status: str):
         """Update current operation status"""
@@ -30,6 +31,16 @@ class ProgressTracker:
     def _display_progress(self):
         """Display current progress"""
         elapsed = (datetime.now() - self.start_time).total_seconds()
+        elapsed_str = self._format_time(elapsed)
+
+        if self.only_status:
+            # Simple status-only display
+            status_line = f"\rElapsed: {elapsed_str} | Status: {self.current_status}"
+            # Print without newline
+            sys.stdout.write("\r" + " " * 150)  # Clear line
+            sys.stdout.write(status_line)
+            sys.stdout.flush()
+            return
 
         # Calculate progress percentage
         progress_pct = (
