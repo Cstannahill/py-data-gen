@@ -105,8 +105,8 @@ json-repair>=0.30.0
 ## Installation
 
 ```bash
-# Clone
-git clone https://github.com/Cstannahill/py-data-gen
+# Clone the repository
+git clone https://github.com/Cstannahill/py-data-gen.git
 cd py-data-gen
 
 # Create and activate a virtual environment
